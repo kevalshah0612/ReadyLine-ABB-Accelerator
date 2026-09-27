@@ -1,0 +1,15 @@
+.venv/
+node_modules/
+frontend/dist/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+.env
+data/
+*.log
+test-results/
+
+# Local submission materials are delivered separately, never pushed with code.
+documents/
+*.tsbuildinfo
