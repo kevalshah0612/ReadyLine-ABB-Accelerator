@@ -243,6 +243,33 @@ The stockout test expects an escalation with no work order. Reports include elap
 
 The default model is `nvidia/nemotron-3-ultra-550b-a55b` with thinking disabled. For faster runs, you can select `nvidia/nemotron-3-super-120b-a12b` through `.env`. If you enable thinking, raise the response budget (for example, to `16384`) and expect longer runs. Restart the backend after changing these values. NVIDIA documents the models on its [Super](https://build.nvidia.com/nvidia/nemotron-3-super-120b-a12b) and [Ultra](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b) pages.
 
+## Azure hosting
+
+`deploy/compose.azure.yml` runs the application behind Caddy, which provides HTTPS for a public hostname. Run one application instance. The database stays in `/var/lib/readyline` on the VM, outside the container.
+
+On an Ubuntu VM with Docker and Docker Compose installed:
+
+1. Clone this repository and open its directory.
+2. Create `/etc/readyline/runtime.env` with the NVIDIA settings shown above. Keep this file readable only by root. Never commit it.
+3. Create `/etc/readyline/site.env` containing `SITE_HOST=your.public.hostname`. Point that hostname to the VM's public IP and allow TCP ports 80 and 443.
+4. Create `/var/lib/readyline`, owned by UID and GID `10001`, with permissions `700`. To migrate existing records, use SQLite's backup API and place the snapshot at `/var/lib/readyline/readyline.sqlite3`, owned by `10001:10001`. Do not copy an active database file without its WAL state.
+5. Start the services:
+
+```bash
+sudo docker compose --env-file /etc/readyline/site.env -f deploy/compose.azure.yml up -d --build
+sudo docker compose --env-file /etc/readyline/site.env -f deploy/compose.azure.yml ps
+```
+
+For a new empty database, keep access restricted until you have created the first administrator. An existing database keeps its accounts and records. The deployment enables secure session cookies and automatically restarts containers after a VM reboot.
+
+To view application logs:
+
+```bash
+sudo docker compose --env-file /etc/readyline/site.env -f deploy/compose.azure.yml logs --tail 100 app
+```
+
+After pulling code updates, repeat the start command to rebuild. Back up the database before updates. Restrict SSH to your own IP. VM compute, disks, and the public IP can incur charges; delete the dedicated deployment resources when the hosting period ends.
+
 ## Project structure
 
 ```text

@@ -1,0 +1,7 @@
+{$SITE_HOST} {
+    encode gzip
+    reverse_proxy app:8000 {
+        # Deliver persisted agent events promptly to EventSource clients.
+        flush_interval -1
+    }
+}
