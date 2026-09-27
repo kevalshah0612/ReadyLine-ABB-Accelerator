@@ -634,7 +634,14 @@ export default function App() {
                     conclusions.
                   </p>
                 </div>
-                <span className="model-label">{status?.model}</span>
+                <span className="model-label">
+                  {String(
+                    events.find((event) => event.kind === "started")?.payload
+                      .model ??
+                      status?.model ??
+                      "",
+                  )}
+                </span>
               </div>
               {!runs.length ? (
                 <Empty title="No agent runs yet">

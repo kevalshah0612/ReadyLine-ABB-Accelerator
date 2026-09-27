@@ -33,7 +33,7 @@ The database is created automatically when the server starts. No separate databa
 - Python 3.11 or later
 - Node.js 22 or later, with npm
 - Git
-- An NVIDIA API key with access to `nvidia/nemotron-3-ultra-550b-a55b`
+- An NVIDIA API key with access to `nvidia/nemotron-3-super-120b-a12b`
 
 ## Install and run on Windows
 
@@ -70,7 +70,9 @@ Set the following values and save the file:
 ```dotenv
 NVIDIA_API_KEY=your_nvidia_api_key
 NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
-NVIDIA_MODEL=nvidia/nemotron-3-ultra-550b-a55b
+NVIDIA_MODEL=nvidia/nemotron-3-super-120b-a12b
+NVIDIA_ENABLE_THINKING=false
+NVIDIA_MAX_TOKENS=2048
 ```
 
 Keep the key in `.env`. This file is excluded from Git. The backend reads the key; it is not included in the browser application.
@@ -207,14 +209,31 @@ This makes provider requests and stores its sample inputs and results in a separ
 | --- | --- | --- |
 | `NVIDIA_API_KEY` | Empty | Your NVIDIA API key. |
 | `NVIDIA_BASE_URL` | `https://integrate.api.nvidia.com/v1` | Provider endpoint. |
-| `NVIDIA_MODEL` | `nvidia/nemotron-3-ultra-550b-a55b` | Model used by the agents. |
-| `NVIDIA_ENABLE_THINKING` | `true` | Model thinking setting. |
-| `NVIDIA_MAX_TOKENS` | `16384` | Response token limit per request. |
+| `NVIDIA_MODEL` | `nvidia/nemotron-3-super-120b-a12b` | Model used by the agents. |
+| `NVIDIA_ENABLE_THINKING` | `false` | Enable extended model reasoning when needed. |
+| `NVIDIA_MAX_TOKENS` | `2048` | Response token limit per request. |
 | `NVIDIA_TIMEOUT_SECONDS` | `180` | Provider request timeout. |
 | `READYLINE_DB` | `data/readyline.sqlite3` | Database location. |
 | `COOKIE_SECURE` | `false` | Set to `true` when serving over HTTPS. |
 
 Run one server worker. The current queue and SQLite database are designed for a single application instance.
+
+### Model choice and response time
+
+The default is Nemotron 3 Super with extended thinking disabled. In small local tests on the sample workflow, completed Super runs took about 34–46 seconds. The final 34-second run completed all five stages without rejected tool calls or provider retries. Ultra took 2 minutes 39 seconds with thinking disabled; the earlier Ultra run with thinking enabled took 5 minutes 37 seconds. These were individual hosted-API runs, not controlled throughput or diagnostic-accuracy benchmarks. Service load and retries affect the time.
+
+Some requests needed a correction before their output passed validation. Those rejected calls remain visible in the event log. A temporary overload during a response stream is retried at most twice; partial responses are discarded before any tool is executed. The procedure, inventory, schedule, and human-approval checks remain enforced for every model.
+
+To compare a model without changing your application configuration:
+
+```powershell
+.venv\Scripts\python -m scripts.verify_live --model nvidia/nemotron-3-super-120b-a12b --no-thinking --max-tokens 2048
+.venv\Scripts\python -m scripts.verify_live --model nvidia/nemotron-3-super-120b-a12b --no-thinking --max-tokens 2048 --scenario stockout
+```
+
+The stockout test expects an escalation with no work order. Reports include elapsed time, completed stages, constraint checks, rejected calls, and provider retries. They are saved beside the isolated validation database under `data/`.
+
+You can still use `nvidia/nemotron-3-ultra-550b-a55b` through `.env`. If you enable thinking, raise the response budget (for example, to `16384`) and expect longer runs. Restart the backend after changing these values. NVIDIA documents the models on its [Super](https://build.nvidia.com/nvidia/nemotron-3-super-120b-a12b) and [Ultra](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b) pages.
 
 ## Project structure
 

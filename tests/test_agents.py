@@ -92,7 +92,13 @@ def test_full_pipeline_records_actual_tools_and_proposal(seeded):
     assert len([e for e in events if e["kind"] == "tool_result"]) == 6
     assert db.one("SELECT status FROM work_orders WHERE run_id=?", (run_id,))["status"] == "proposed"
     assert all(r["stream"] for r in provider.requests)
-    assert all(r["model"] == "nvidia/nemotron-3-ultra-550b-a55b" for r in provider.requests)
+    assert all(r["model"] == seeded.app.state.settings.nvidia_model for r in provider.requests)
+    assert all(r["max_tokens"] == seeded.app.state.settings.nvidia_max_tokens for r in provider.requests)
+    assert all(
+        r["extra_body"]["chat_template_kwargs"]["enable_thinking"]
+        == seeded.app.state.settings.nvidia_enable_thinking
+        for r in provider.requests
+    )
 
 
 def test_provider_failure_never_becomes_fake_success(seeded):
@@ -112,3 +118,39 @@ def test_provider_failure_never_becomes_fake_success(seeded):
     asyncio.run(RunWorker(db, runner).execute({"id": run_id, "asset_id": "MTR-042"}))
     assert db.one("SELECT status FROM runs WHERE id=?", (run_id,))["status"] == "failed"
     assert db.one("SELECT id FROM work_orders WHERE run_id=?", (run_id,)) is None
+
+
+def test_partial_overloaded_stream_retries_without_executing_partial_tools(seeded):
+    import httpx
+    from openai import APIError
+
+    class OverloadedStream(Stream):
+        async def __anext__(self):
+            if self.chunks:
+                return self.chunks.pop(0)
+            raise APIError(
+                "Service temporarily overloaded",
+                request=httpx.Request("POST", "https://provider.test"),
+                body=None,
+            )
+
+    class RecoveringProvider(ToolCallingProvider):
+        async def create(self, **kwargs):
+            stream = await super().create(**kwargs)
+            if len(self.requests) == 1:
+                return OverloadedStream(stream.chunks[:1])
+            return stream
+
+    db = seeded.app.state.db
+    run_id = uid()
+    with db.transaction() as c:
+        actor = c.execute("SELECT id FROM users LIMIT 1").fetchone()[0]
+        c.execute(
+            "INSERT INTO runs(id,asset_id,status,created_at,requested_by) VALUES(?,?,?,?,?)",
+            (run_id, "MTR-042", "running", now(), actor),
+        )
+    runner = NVIDIAAgentRunner(seeded.app.state.settings, db, client=RecoveringProvider())
+    asyncio.run(RunWorker(db, runner).execute({"id": run_id, "asset_id": "MTR-042"}))
+    assert db.one("SELECT status FROM runs WHERE id=?", (run_id,))["status"] == "completed"
+    assert len(db.all("SELECT id FROM events WHERE run_id=? AND kind='provider_retry'", (run_id,))) == 1
+    assert len(db.all("SELECT id FROM events WHERE run_id=? AND kind='tool_result'", (run_id,))) == 6
