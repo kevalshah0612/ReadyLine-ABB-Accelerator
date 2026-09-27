@@ -261,13 +261,13 @@ Dockerfile         Container build
 .env.example       Configuration template
 ```
 
-Submission documents are kept separately in the local `documents/` folder and are not included in this repository. Credentials, databases, installed dependencies, caches, and compiled frontend files are also excluded.
+Submission documents are kept separately in the local `refs/` folder and are not included in this repository. Credentials, databases, installed dependencies, caches, and compiled frontend files are also excluded.
 
 ## Submission materials
 
 The six submission items are a project summary, working prototype, demo video, source-code link, technical documentation, and an optional presentation deck.
 
-The source-code link is https://github.com/kevalshah0612/ReadyLine-ABB-Accelerator. For a local checkout containing the separate submission materials, open `documents/SUBMISSION_INDEX.md` for the file mapping and remaining actions. Those files are deliberately excluded from this repository. The video still needs recording, and the optional deck currently has an outline only. A localhost URL is not accessible to remote judges.
+The source-code link is https://github.com/kevalshah0612/ReadyLine-ABB-Accelerator. For a local checkout containing the separate submission materials, open `refs/SUBMISSION_INDEX.md` for the file mapping and remaining actions. Those files are deliberately excluded from this repository. The video still needs recording, and the optional deck currently has an outline only. A localhost URL is not accessible to remote judges.
 
 ## Troubleshooting
 
