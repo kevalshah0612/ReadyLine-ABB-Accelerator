@@ -10,7 +10,7 @@ export const date = (value?: string | null) =>
         hour: "2-digit",
         minute: "2-digit",
       })
-    : "—";
+    : "-";
 export const money = (value: number) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -212,5 +212,25 @@ export function Trend({
         <span>{date(readings.at(-1)!.observed_at)}</span>
       </div>
     </>
+  );
+}
+
+/** Format stored results for display without changing their original evidence. */
+export const plainText = (value: string) =>
+  value.replace(/[\u2013\u2014]/g, " - ").replace(/\*\*(.*?)\*\*/g, "$1");
+export function Points({ items }: { items: string | string[] }) {
+  // Sentence boundaries require whitespace, so decimal sensor readings stay intact.
+  const points = (Array.isArray(items) ? items : [items])
+    .flatMap((value) =>
+      plainText(value).split(/(?:\r?\n)+|(?<=[.!?])\s+(?=[A-Z0-9])|;\s+/),
+    )
+    .map((value) => value.replace(/^\s*[-*\u2022]\s+/, "").trim())
+    .filter(Boolean);
+  return (
+    <ul className="points">
+      {[...new Set(points)].map((point, i) => (
+        <li key={i}>{point}</li>
+      ))}
+    </ul>
   );
 }

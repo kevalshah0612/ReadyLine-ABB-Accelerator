@@ -59,7 +59,7 @@ export function AssetForm({ done }: { done: () => Promise<void> }) {
             required
           />
         </Field>
-        <Field label="Duty cycle (0–1)">
+        <Field label="Duty cycle (0-1)">
           <input
             name="duty_cycle"
             type="number"
@@ -69,10 +69,10 @@ export function AssetForm({ done }: { done: () => Promise<void> }) {
             required
           />
         </Field>
-        <Field label="Safety consequence (1–10)">
+        <Field label="Safety consequence (1-10)">
           <input name="safety" type="number" min="1" max="10" required />
         </Field>
-        <Field label="Production impact (1–10)">
+        <Field label="Production impact (1-10)">
           <input
             name="production_impact"
             type="number"
@@ -248,7 +248,7 @@ export function WindowForm({ done }: { done: () => Promise<void> }) {
         <Field label="End (your local time)">
           <input name="ends_at" type="datetime-local" required />
         </Field>
-        <Field label="Production utilization (0–1)">
+        <Field label="Production utilization (0-1)">
           <input
             name="production_fraction"
             type="number"
@@ -370,11 +370,11 @@ export function UserForm({ done }: { done: () => Promise<void> }) {
       <Field label="Role">
         <select name="role">
           <option value="supervisor">
-            Supervisor — approves work and procedures
+            Supervisor - approves work and procedures
           </option>
-          <option value="planner">Planner — manages inputs and analysis</option>
+          <option value="planner">Planner - manages inputs and analysis</option>
           <option value="technician">
-            Technician — completes approved work
+            Technician - completes approved work
           </option>
         </select>
       </Field>

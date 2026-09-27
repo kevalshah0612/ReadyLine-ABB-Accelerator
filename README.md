@@ -16,6 +16,14 @@ Built for the ABB Accelerator 2026 maintenance challenge.
 - Approve work, reserve parts, and record completed repairs.
 - Review a history of changes and decisions.
 
+## Using the workspace
+
+Use the navigation across the top to open equipment, agent results, work orders, planning, or the activity log.
+
+- Agent results show priority and the review deadline first, followed by bullet-point findings. Expand the supporting details to see the full assessment and limitations.
+- Work orders awaiting approval appear before completed or cancelled work. Check the priority, deadline, and maintenance window before approving.
+- The red, white, and gray interface is inspired by ABB. ReadyLine is an accelerator project.
+
 ## Stack
 
 | Component | Technology |

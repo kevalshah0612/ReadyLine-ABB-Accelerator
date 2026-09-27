@@ -29,6 +29,8 @@ import type {
 } from "./types";
 import {
   Badge,
+  Points,
+  plainText,
   date,
   Empty,
   ErrorBox,
@@ -256,16 +258,17 @@ export default function App() {
           </div>
           <p className="eyebrow">MAINTENANCE OPERATIONS</p>
           <h1>
-            From a signal
+            Maintenance planning.
             <br />
-            to a decision.
-            <br />
-            <span>With evidence.</span>
+            <span>Ready for review.</span>
           </h1>
-          <p>
-            Review equipment health, inspect agent decisions, and turn approved
-            plans into recorded maintenance work.
-          </p>
+          <Points
+            items={[
+              "Find equipment that needs attention.",
+              "Review evidence and approve maintenance plans.",
+              "Record repairs and share confirmed findings.",
+            ]}
+          />
           <div className="auth-footer">
             <Database size={18} />
             Persistent records <span>·</span>
@@ -334,31 +337,54 @@ export default function App() {
 
   return (
     <div className="shell">
-      <aside className="sidebar">
-        <div className="wordmark">
-          <span className="brand-icon">
-            <Activity />
-          </span>
-          ReadyLine<span className="version">02</span>
-        </div>
-        <div className="workspace">
-          <Factory size={18} />
-          <div>
-            Maintenance operations<small>Plant workspace</small>
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      <header className="app-header">
+        <div className="header-main">
+          <div className="header-brand">
+            <span className="brand-rule" />
+            <div className="wordmark">ReadyLine</div>
+            <span className="project-label">
+              ABB Accelerator 2026
+              <br />
+              Maintenance operations
+            </span>
+          </div>
+          <div className="header-tools">
+            <span className="provider-status">
+              {status?.provider_configured
+                ? "NVIDIA configured"
+                : "NVIDIA key missing"}
+            </span>
+            <div className="account">
+              <div>
+                {user.username}
+                <small>{user.role}</small>
+              </div>
+              <button
+                aria-label="Sign out"
+                className="icon-button"
+                onClick={signOut}
+                disabled={busy}
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
           </div>
         </div>
-        <p className="nav-label">WORKSPACE</p>
-        <nav>
+        <nav className="header-nav" aria-label="Main navigation">
           {navigation.map((item) => (
             <button
               key={item.id}
+              aria-current={view === item.id ? "page" : undefined}
               className={view === item.id ? "active" : ""}
               onClick={() => setView(item.id)}
             >
               <item.icon size={18} />
               {item.label}
               {item.id === "orders" &&
-                orders.filter((o) => o.status === "proposed").length > 0 && (
+                orders.some((o) => o.status === "proposed") && (
                   <span className="count">
                     {orders.filter((o) => o.status === "proposed").length}
                   </span>
@@ -366,47 +392,16 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div className="sidebar-bottom">
-          <div className="provider">
-            <span
-              className={`status-dot ${status?.provider_configured ? "ready" : ""}`}
-            />
-            <div>
-              NVIDIA NIM
-              <small>
-                {status?.provider_configured
-                  ? "Credentials configured"
-                  : "Key missing"}
-              </small>
-            </div>
-          </div>
-          <div className="account">
-            <span className="avatar">
-              {user.username.slice(0, 2).toUpperCase()}
-            </span>
-            <div>
-              {user.username}
-              <small>{user.role}</small>
-            </div>
-            <button
-              aria-label="Sign out"
-              className="icon-button"
-              onClick={signOut}
-              disabled={busy}
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </div>
-      </aside>
-      <main>
-        <header className="topbar">
-          <div>
-            <span className="breadcrumb">OPERATIONS /</span>
-            <strong>{navigation.find((n) => n.id === view)?.label}</strong>
-          </div>
+      </header>
+      <main id="main-content" tabIndex={-1}>
+        <div className="topbar">
+          <span>
+            OPERATIONS / {navigation.find((n) => n.id === view)?.label}
+          </span>
           <div className="sync">
-            <span>{updated ? `Synced ${date(updated)}` : "Connecting…"}</span>
+            <span>
+              {updated ? `Updated ${date(updated)}` : "Connecting..."}
+            </span>
             <button
               className="icon-button"
               disabled={busy}
@@ -415,16 +410,8 @@ export default function App() {
             >
               <RefreshCw size={16} />
             </button>
-            <button
-              className="icon-button mobile-signout"
-              aria-label="Sign out"
-              onClick={signOut}
-              disabled={busy}
-            >
-              <LogOut size={16} />
-            </button>
           </div>
-        </header>
+        </div>
         <div className="content">
           {error && (
             <div className="error-row">
@@ -443,7 +430,7 @@ export default function App() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">FLEET INTELLIGENCE</p>
-                  <h1>Know what needs attention.</h1>
+                  <h1>Equipment overview</h1>
                   <p className="muted">
                     Measured condition. Traceable decisions. Approved action.
                   </p>
@@ -515,7 +502,7 @@ export default function App() {
                         </div>
                         <div className="asset-score">
                           {a.latest_run?.result?.evidence.calculate_priority
-                            ?.score ?? "—"}
+                            ?.score ?? "-"}
                           <small>priority</small>
                         </div>
                       </button>
@@ -542,21 +529,21 @@ export default function App() {
                           <div>
                             <span>Vibration</span>
                             <strong>
-                              {selectedAsset.latest?.vibration ?? "—"}
+                              {selectedAsset.latest?.vibration ?? "-"}
                               <small> mm/s</small>
                             </strong>
                           </div>
                           <div>
                             <span>Temperature</span>
                             <strong>
-                              {selectedAsset.latest?.temperature ?? "—"}
+                              {selectedAsset.latest?.temperature ?? "-"}
                               <small> °C</small>
                             </strong>
                           </div>
                           <div>
                             <span>Load</span>
                             <strong>
-                              {selectedAsset.latest?.load ?? "—"}
+                              {selectedAsset.latest?.load ?? "-"}
                               <small> %</small>
                             </strong>
                           </div>
@@ -628,7 +615,7 @@ export default function App() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">AGENT OPERATIONS</p>
-                  <h1>Every decision leaves a trail.</h1>
+                  <h1>Analysis results</h1>
                   <p className="muted">
                     Live tool calls, retrieved evidence, and specialist
                     conclusions.
@@ -668,6 +655,46 @@ export default function App() {
                   {selectedRun?.error && (
                     <ErrorBox message={selectedRun.error} />
                   )}
+                  {selectedRun?.result && (
+                    <section
+                      className="decision-strip"
+                      aria-label="Analysis outcome"
+                    >
+                      <div>
+                        <span>Next step</span>
+                        <strong>
+                          {selectedRun.status === "escalated"
+                            ? "Review the blocking issues"
+                            : selectedRun.status === "completed"
+                              ? "Review the work proposal"
+                              : "Check the run status"}
+                        </strong>
+                      </div>
+                      <div>
+                        <span>Priority</span>
+                        <strong>
+                          {selectedRun.result.evidence.calculate_priority
+                            ? `${selectedRun.result.evidence.calculate_priority.score} / 100 (${selectedRun.result.evidence.calculate_priority.level})`
+                            : "Not calculated"}
+                        </strong>
+                      </div>
+                      <div>
+                        <span>Review deadline</span>
+                        <strong>
+                          {date(
+                            selectedRun.result.evidence.calculate_priority
+                              ?.review_deadline,
+                          )}
+                        </strong>
+                      </div>
+                      <button
+                        className="button"
+                        onClick={() => setView("orders")}
+                      >
+                        View work orders <ArrowUpRight size={16} />
+                      </button>
+                    </section>
+                  )}
                   <div className="agents-grid">
                     {["Health", "Fleet", "Risk", "Work order", "Schedule"].map(
                       (name, i) => {
@@ -680,6 +707,7 @@ export default function App() {
                         const conclusion = complete?.payload as unknown as
                           | {
                               summary: string;
+                              observations?: string[];
                               uncertainty: string;
                               disposition: string;
                             }
@@ -711,20 +739,49 @@ export default function App() {
                                     : "waiting"
                               }
                             />
-                            <p>
-                              {conclusion?.summary ??
-                                (started
-                                  ? "Retrieving evidence and evaluating the decision…"
-                                  : "Awaiting upstream evidence.")}
-                            </p>
-                            {conclusion && (
-                              <small>{conclusion.uncertainty}</small>
+                            {conclusion ? (
+                              <>
+                                <Points
+                                  items={
+                                    conclusion.observations?.length
+                                      ? conclusion.observations
+                                      : conclusion.summary
+                                  }
+                                />
+                                <details className="supporting">
+                                  <summary>Decision and limitations</summary>
+                                  <Points items={conclusion.summary} />
+                                  <h4>Limitations</h4>
+                                  <Points items={conclusion.uncertainty} />
+                                </details>
+                              </>
+                            ) : (
+                              <p>
+                                {started
+                                  ? "Reviewing evidence..."
+                                  : "Waiting for earlier agents."}
+                              </p>
                             )}
                           </section>
                         );
                       },
                     )}
                   </div>
+                  {selectedRun?.result?.evidence.evaluate_windows && (
+                    <section className="panel section-gap">
+                      <div className="panel-heading">
+                        <h2>Window evaluation</h2>
+                        <span className="muted">
+                          Computed from current constraints
+                        </span>
+                      </div>
+                      <WindowTable
+                        windows={
+                          selectedRun.result.evidence.evaluate_windows.windows
+                        }
+                      />
+                    </section>
+                  )}
                   <div className="two-columns">
                     <section className="panel">
                       <div className="panel-heading">
@@ -781,7 +838,7 @@ export default function App() {
                                 </p>
                                 {peer.confirmed_repairs.map((repair) => (
                                   <blockquote key={repair.id}>
-                                    {repair.feedback.finding}
+                                    <Points items={repair.feedback.finding} />
                                   </blockquote>
                                 ))}
                               </div>
@@ -803,21 +860,6 @@ export default function App() {
                       )}
                     </section>
                   </div>
-                  {selectedRun?.result?.evidence.evaluate_windows && (
-                    <section className="panel section-gap">
-                      <div className="panel-heading">
-                        <h2>Window evaluation</h2>
-                        <span className="muted">
-                          Computed from current constraints
-                        </span>
-                      </div>
-                      <WindowTable
-                        windows={
-                          selectedRun.result.evidence.evaluate_windows.windows
-                        }
-                      />
-                    </section>
-                  )}
                 </>
               )}
             </>
@@ -827,7 +869,7 @@ export default function App() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">MAINTENANCE WORKFLOW</p>
-                  <h1>Move the right work forward.</h1>
+                  <h1>Work orders</h1>
                   <p className="muted">
                     Review proposals, reserve resources, and capture confirmed
                     findings.
@@ -841,18 +883,38 @@ export default function App() {
                 </Empty>
               ) : (
                 <div className="orders">
-                  {orders.map((order) => (
-                    <OrderCard
-                      key={order.id}
-                      order={order}
-                      resources={resources}
-                      canApprove={canApprove}
-                      canComplete={canComplete}
-                      busy={busy}
-                      act={action}
-                      refresh={refresh}
-                    />
-                  ))}
+                  {[...orders]
+                    .sort(
+                      (a, b) =>
+                        [
+                          "proposed",
+                          "approved",
+                          "completed",
+                          "cancelled",
+                        ].indexOf(a.status) -
+                        [
+                          "proposed",
+                          "approved",
+                          "completed",
+                          "cancelled",
+                        ].indexOf(b.status),
+                    )
+                    .map((order) => (
+                      <OrderCard
+                        key={order.id}
+                        order={order}
+                        observations={
+                          runs.find((r) => r.id === order.run_id)?.result
+                            ?.agents["Work order"]?.observations
+                        }
+                        resources={resources}
+                        canApprove={canApprove}
+                        canComplete={canComplete}
+                        busy={busy}
+                        act={action}
+                        refresh={refresh}
+                      />
+                    ))}
                 </div>
               )}
             </>
@@ -862,7 +924,7 @@ export default function App() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">PLANNING & RESOURCES</p>
-                  <h1>Give decisions real constraints.</h1>
+                  <h1>Planning and resources</h1>
                   <p className="muted">
                     Manage inventory, approved procedures, and production
                     windows.
@@ -957,10 +1019,10 @@ export default function App() {
                             {p.equipment_class} · {p.duration_hours}h
                           </span>
                         </summary>
-                        <p className="muted">{p.source}</p>
+                        <Points items={p.source} />
                         <ol>
                           {p.steps.map((s, i) => (
-                            <li key={i}>{s}</li>
+                            <li key={i}>{plainText(s)}</li>
                           ))}
                         </ol>
                       </details>
@@ -1138,7 +1200,7 @@ function WindowTable({ windows }: { windows: Resources["windows"] }) {
                 ) : (
                   <>
                     <Badge value="blocked" />
-                    <small>{w.reasons?.join("; ")}</small>
+                    <Points items={w.reasons ?? []} />
                   </>
                 )}
               </td>
@@ -1151,6 +1213,7 @@ function WindowTable({ windows }: { windows: Resources["windows"] }) {
 }
 function OrderCard({
   order,
+  observations,
   resources,
   canApprove,
   canComplete,
@@ -1159,6 +1222,7 @@ function OrderCard({
   refresh,
 }: {
   order: Order;
+  observations?: string[];
   resources: Resources;
   canApprove: boolean;
   canComplete: boolean;
@@ -1175,11 +1239,11 @@ function OrderCard({
           <p className="eyebrow">
             {order.asset_id} / {order.id.slice(0, 8)}
           </p>
-          <h2>{order.plan.procedure.title}</h2>
+          <h2>{plainText(order.plan.procedure.title)}</h2>
         </div>
         <Badge value={order.status} />
       </div>
-      <p>{order.plan.agent_summary}</p>
+
       <div className="order-facts">
         <div>
           <span>Maintenance window</span>
@@ -1194,39 +1258,10 @@ function OrderCard({
           <strong>{order.plan.priority.score} / 100</strong>
         </div>
         <div>
-          <span>Procedure reference</span>
-          <strong>{order.plan.procedure.source}</strong>
+          <span>Review deadline</span>
+          <strong>{date(order.plan.priority.review_deadline)}</strong>
         </div>
       </div>
-      <div className="chips">
-        {order.plan.parts.map((p) => (
-          <span key={p.part_id}>
-            {p.quantity} × {p.name}
-          </span>
-        ))}
-      </div>
-      <details className="procedure" open={order.status === "approved"}>
-        <summary>Procedure & execution checklist</summary>
-        {order.plan.procedure.steps.map((step, i) => (
-          <label className="check step" key={i}>
-            <input
-              type="checkbox"
-              disabled={order.status !== "approved" || !canComplete}
-              checked={order.status === "completed" || checked.includes(i)}
-              onChange={(e) =>
-                setChecked((previous) =>
-                  e.target.checked
-                    ? [...previous, i]
-                    : previous.filter((n) => n !== i),
-                )
-              }
-            />
-            <span>
-              {i + 1}. {step}
-            </span>
-          </label>
-        ))}
-      </details>
       {order.status === "proposed" && canApprove && (
         <div className="actions">
           <button
@@ -1259,6 +1294,45 @@ function OrderCard({
           Cancel work & release resources
         </button>
       )}
+      <h3>Key findings</h3>
+      <Points
+        items={observations?.length ? observations : order.plan.agent_summary}
+      />
+      <details className="supporting">
+        <summary>Full assessment and procedure reference</summary>
+        <Points items={order.plan.agent_summary} />
+        <h4>Procedure reference</h4>
+        <Points items={order.plan.procedure.source} />
+      </details>
+      <div className="chips">
+        {order.plan.parts.map((p) => (
+          <span key={p.part_id}>
+            {p.quantity} × {p.name}
+          </span>
+        ))}
+      </div>
+      <details className="procedure" open={order.status === "approved"}>
+        <summary>Procedure & execution checklist</summary>
+        {order.plan.procedure.steps.map((step, i) => (
+          <label className="check step" key={i}>
+            <input
+              type="checkbox"
+              disabled={order.status !== "approved" || !canComplete}
+              checked={order.status === "completed" || checked.includes(i)}
+              onChange={(e) =>
+                setChecked((previous) =>
+                  e.target.checked
+                    ? [...previous, i]
+                    : previous.filter((n) => n !== i),
+                )
+              }
+            />
+            <span>
+              {i + 1}. {plainText(step)}
+            </span>
+          </label>
+        ))}
+      </details>
       {order.status === "approved" && canComplete && (
         <div className="completion">
           <h3>Record confirmed findings</h3>
@@ -1314,7 +1388,7 @@ function OrderCard({
           <Check size={18} />
           <div>
             <strong>Confirmed feedback · {date(order.completed_at)}</strong>
-            <p>{order.feedback.finding}</p>
+            <Points items={order.feedback.finding} />
             <span>
               {order.feedback.actual_hours}h actual ·{" "}
               {order.feedback.post_vibration} mm/s after repair · Available to

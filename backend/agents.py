@@ -219,7 +219,7 @@ class NVIDIAAgentRunner:
                     "the limit is already reached. Clearly labeled synthetic inputs may be analyzed for scenario testing; "
                     "retain their provenance and never represent them as real plant measurements. "
                     "Never dispatch work, approve repairs, or write control logic. "
-                    "Keep the summary under 80 words, give one to four short observations, and state uncertainty "
+                    "Use plain English without em dashes. Put the required action or blocking issue first. Keep the summary to one sentence under 35 words. Give one to four observations, each under 25 words, with the most important finding first. Avoid repeating other agents. State uncertainty "
                     "in one or two sentences. The observations field must be a JSON array of strings, never a "
                     "single string or a string containing an encoded array. Do not expose private chain-of-thought."
                 ),
