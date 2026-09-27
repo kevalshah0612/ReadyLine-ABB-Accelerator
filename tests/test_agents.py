@@ -154,3 +154,58 @@ def test_partial_overloaded_stream_retries_without_executing_partial_tools(seede
     assert db.one("SELECT status FROM runs WHERE id=?", (run_id,))["status"] == "completed"
     assert len(db.all("SELECT id FROM events WHERE run_id=? AND kind='provider_retry'", (run_id,))) == 1
     assert len(db.all("SELECT id FROM events WHERE run_id=? AND kind='tool_result'", (run_id,))) == 6
+
+
+def test_truncated_stream_discards_partial_calls_and_retries(seeded, monkeypatch):
+    from backend.agents import AGENTS
+
+    async def no_wait(_):
+        pass
+
+    monkeypatch.setattr("backend.agents.asyncio.sleep", no_wait)
+
+    class TruncatedProvider(ToolCallingProvider):
+        async def create(self, **kwargs):
+            stream = await super().create(**kwargs)
+            if len(self.requests) == 1:
+                return Stream(stream.chunks[:1])
+            return stream
+
+    events = []
+    provider = TruncatedProvider()
+    runner = NVIDIAAgentRunner(seeded.app.state.settings, NS(event=lambda *args: events.append(args)), client=provider)
+    calls, _, finish = asyncio.run(runner.stream_completion("test", AGENTS[0], []))
+    assert finish == "tool_calls"
+    assert calls[0]["function"]["arguments"] == "{}"
+    assert len(provider.requests) == 2
+    assert events[0][-1]["retry_in_seconds"] == 5
+
+
+def test_repeated_disconnects_stop_after_three_attempts(seeded, monkeypatch):
+    import httpx
+    import pytest
+    from backend.agents import AGENTS
+    from backend.domain import DomainError
+
+    waits = []
+
+    async def no_wait(seconds):
+        waits.append(seconds)
+
+    monkeypatch.setattr("backend.agents.asyncio.sleep", no_wait)
+
+    class DisconnectedStream(Stream):
+        async def __anext__(self):
+            raise httpx.ReadError("Connection lost")
+
+    class DisconnectedProvider(ToolCallingProvider):
+        async def create(self, **kwargs):
+            self.requests.append(kwargs)
+            return DisconnectedStream([])
+
+    provider = DisconnectedProvider()
+    runner = NVIDIAAgentRunner(seeded.app.state.settings, NS(event=lambda *args: None), client=provider)
+    with pytest.raises(DomainError, match="after 3 attempts during the Health agent"):
+        asyncio.run(runner.stream_completion("test", AGENTS[0], []))
+    assert len(provider.requests) == 3
+    assert waits == [5, 15]

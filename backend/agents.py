@@ -9,6 +9,8 @@ AI fallback, canned completion, or fabricated agent trace.
 import asyncio
 import json
 import logging
+
+import httpx
 from dataclasses import dataclass
 
 from openai import AsyncOpenAI, APIConnectionError, APIError, APIStatusError, APITimeoutError
@@ -169,23 +171,31 @@ class NVIDIAAgentRunner:
                         if piece.function:
                             call["function"]["name"] += piece.function.name or ""
                             call["function"]["arguments"] += piece.function.arguments or ""
-            except APIError as error:
-                transient = any(
+                if finish is None:
+                    raise httpx.RemoteProtocolError("NVIDIA stream ended without a finish marker")
+            except (APIError, httpx.TransportError) as error:
+                transient = isinstance(error, (APIConnectionError, httpx.TransportError)) or any(
                     word in str(error).lower() for word in ("overload", "temporarily", "rate limit")
                 )
-                if not transient or attempt == 2:
+                if not transient:
                     raise
+                if attempt == 2:
+                    raise DomainError(
+                        f"NVIDIA remained unavailable after 3 attempts during the {spec.name} agent. "
+                        "Wait a minute, then start a new analysis from Fleet intelligence. "
+                        "This failed run did not create a work order."
+                    ) from error
                 retry = True
                 self.db.event(
                     run_id,
                     spec.name,
                     "provider_retry",
-                    {"attempt": attempt + 1, "reason": "NVIDIA stream temporarily unavailable"},
+                    {"attempt": attempt + 1, "reason": "NVIDIA stream temporarily unavailable", "retry_in_seconds": (5, 15)[attempt]},
                 )
             finally:
                 await stream.close()
             if retry:
-                await asyncio.sleep(2**attempt)
+                await asyncio.sleep((5, 15)[attempt])
                 continue
             return calls, content, finish
         raise DomainError("NVIDIA stream retries exhausted")
