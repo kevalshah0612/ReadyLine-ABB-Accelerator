@@ -6,6 +6,14 @@ A supervisor approves the proposed work. A technician then completes the procedu
 
 Built for the ABB Accelerator 2026 maintenance challenge.
 
+## Live demo
+
+Open [ReadyLine on Azure](https://readyline.20.69.177.151.sslip.io).
+
+The hosted application requires no local installation or reviewer API key. Sign in using the credentials supplied with the hackathon submission. Start in **Fleet intelligence**, select an asset, and choose **Run agent analysis**. Follow progress in **Agent runs**, review the proposed job in **Work orders**, then approve and record a simulated completion using the labeled demonstration data. **Planning & resources** contains inventory, procedures, maintenance windows, and user management. **Activity log** shows saved workflow actions.
+
+Allow several minutes for real NVIDIA responses. Sample readings and maintenance windows must be current. The hosted workspace is shared, so its records may change as reviewers test it.
+
 ## What you can do
 
 - Register motors, pumps, fans, and drives with their operating limits.
