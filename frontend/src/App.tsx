@@ -9,7 +9,6 @@ import {
   Factory,
   LogOut,
   Plus,
-  Radio,
   RefreshCw,
   ShieldCheck,
   Workflow,
@@ -332,12 +331,6 @@ export default function App() {
               />
             </Field>
           </Form>
-          <div className="provider-note">
-            <Radio size={16} />
-            {status?.provider_configured
-              ? "NVIDIA credentials configured"
-              : "NVIDIA credentials required for analysis"}
-          </div>
         </section>
       </div>
     );
@@ -359,16 +352,8 @@ export default function App() {
             </span>
           </div>
           <div className="header-tools">
-            <span className="provider-status">
-              {status?.provider_configured
-                ? "NVIDIA configured"
-                : "NVIDIA key missing"}
-            </span>
             <div className="account">
-              <div>
-                {user.username}
-                <small>{user.role}</small>
-              </div>
+              <div>{user.username}</div>
               <button
                 aria-label="Sign out"
                 className="icon-button"
@@ -628,14 +613,6 @@ export default function App() {
                     conclusions.
                   </p>
                 </div>
-                <span className="model-label">
-                  {String(
-                    events.find((event) => event.kind === "started")?.payload
-                      .model ??
-                      status?.model ??
-                      "",
-                  )}
-                </span>
               </div>
               {!runs.length ? (
                 <Empty title="No agent runs yet">
