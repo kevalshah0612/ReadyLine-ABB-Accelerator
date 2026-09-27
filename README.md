@@ -41,7 +41,7 @@ The database is created automatically when the server starts. No separate databa
 - Python 3.11 or later
 - Node.js 22 or later, with npm
 - Git
-- An NVIDIA API key with access to `nvidia/nemotron-3-super-120b-a12b`
+- An NVIDIA API key with access to `nvidia/nemotron-3-ultra-550b-a55b`
 
 ## Install and run on Windows
 
@@ -78,7 +78,7 @@ Set the following values and save the file:
 ```dotenv
 NVIDIA_API_KEY=your_nvidia_api_key
 NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
-NVIDIA_MODEL=nvidia/nemotron-3-super-120b-a12b
+NVIDIA_MODEL=nvidia/nemotron-3-ultra-550b-a55b
 NVIDIA_ENABLE_THINKING=false
 NVIDIA_MAX_TOKENS=2048
 ```
@@ -217,7 +217,7 @@ This makes provider requests and stores its sample inputs and results in a separ
 | --- | --- | --- |
 | `NVIDIA_API_KEY` | Empty | Your NVIDIA API key. |
 | `NVIDIA_BASE_URL` | `https://integrate.api.nvidia.com/v1` | Provider endpoint. |
-| `NVIDIA_MODEL` | `nvidia/nemotron-3-super-120b-a12b` | Model used by the agents. |
+| `NVIDIA_MODEL` | `nvidia/nemotron-3-ultra-550b-a55b` | Model used by the agents. |
 | `NVIDIA_ENABLE_THINKING` | `false` | Enable extended model reasoning when needed. |
 | `NVIDIA_MAX_TOKENS` | `2048` | Response token limit per request. |
 | `NVIDIA_TIMEOUT_SECONDS` | `180` | Provider request timeout. |
@@ -241,7 +241,7 @@ To compare a model without changing your application configuration:
 
 The stockout test expects an escalation with no work order. Reports include elapsed time, completed stages, constraint checks, rejected calls, and provider retries. They are saved beside the isolated validation database under `data/`.
 
-You can still use `nvidia/nemotron-3-ultra-550b-a55b` through `.env`. If you enable thinking, raise the response budget (for example, to `16384`) and expect longer runs. Restart the backend after changing these values. NVIDIA documents the models on its [Super](https://build.nvidia.com/nvidia/nemotron-3-super-120b-a12b) and [Ultra](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b) pages.
+The default model is `nvidia/nemotron-3-ultra-550b-a55b` with thinking disabled. For faster runs, you can select `nvidia/nemotron-3-super-120b-a12b` through `.env`. If you enable thinking, raise the response budget (for example, to `16384`) and expect longer runs. Restart the backend after changing these values. NVIDIA documents the models on its [Super](https://build.nvidia.com/nvidia/nemotron-3-super-120b-a12b) and [Ultra](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b) pages.
 
 ## Project structure
 
