@@ -228,9 +228,9 @@ Run one server worker. The current queue and SQLite database are designed for a 
 
 ### Model choice and response time
 
-The default is Nemotron 3 Super with extended thinking disabled. In small local tests on the sample workflow, completed Super runs took about 34–46 seconds. The final 34-second run completed all five stages without rejected tool calls or provider retries. Ultra took 2 minutes 39 seconds with thinking disabled; the earlier Ultra run with thinking enabled took 5 minutes 37 seconds. These were individual hosted-API runs, not controlled throughput or diagnostic-accuracy benchmarks. Service load and retries affect the time.
+The default is Nemotron 3 Ultra 550B with extended thinking disabled. Super is available as an optional faster model. In small local tests on the sample workflow, completed Super runs took about 34-46 seconds. The final 34-second run completed all five stages without rejected tool calls or provider retries. Ultra took 2 minutes 39 seconds with thinking disabled; the earlier Ultra run with thinking enabled took 5 minutes 37 seconds. These were individual hosted-API runs, not controlled throughput or diagnostic-accuracy benchmarks. Service load and retries affect the time.
 
-Some requests needed a correction before their output passed validation. Those rejected calls remain visible in the event log. A temporary overload during a response stream is retried at most twice; partial responses are discarded before any tool is executed. The procedure, inventory, schedule, and human-approval checks remain enforced for every model.
+Some requests needed a correction before their output passed validation. Those rejected calls remain visible in the event log. A temporary stream failure is retried at most twice, after 5 and 15 seconds; partial responses are discarded before any tool is executed. The procedure, inventory, schedule, and human-approval checks remain enforced for every model.
 
 To compare a model without changing your application configuration:
 
@@ -263,12 +263,19 @@ Dockerfile         Container build
 
 Submission documents are kept separately in the local `documents/` folder and are not included in this repository. Credentials, databases, installed dependencies, caches, and compiled frontend files are also excluded.
 
+## Submission materials
+
+The six submission items are a project summary, working prototype, demo video, source-code link, technical documentation, and an optional presentation deck.
+
+The source-code link is https://github.com/kevalshah0612/ReadyLine-ABB-Accelerator. For a local checkout containing the separate submission materials, open `documents/SUBMISSION_INDEX.md` for the file mapping and remaining actions. Those files are deliberately excluded from this repository. The video still needs recording, and the optional deck currently has an outline only. A localhost URL is not accessible to remote judges.
+
 ## Troubleshooting
 
 | Problem | What to check |
 | --- | --- |
 | Server shows a message asking you to build the frontend | Run `npm.cmd --prefix frontend run build`, then restart the backend. |
 | Analysis says the NVIDIA key is missing | Set `NVIDIA_API_KEY` in `.env` and restart the backend. |
+| A run fails during a temporary NVIDIA outage | On Agent runs, select it and click Retry analysis. This starts a fresh run for the same asset and preserves the old result. |
 | NVIDIA returns an authentication or model-access error | Check that the key is valid and the account can use the configured model. |
 | No suitable maintenance window | Check job duration, stock, crew availability, permit status, production area, and review deadline. |
 | Approval says measurements or procedures changed | Cancel the proposal and run another analysis with the current inputs. |
