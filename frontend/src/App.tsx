@@ -232,8 +232,15 @@ export default function App() {
   }
   async function analyze() {
     if (!selectedAsset) return;
+    await startAnalysis(selectedAsset.id);
+  }
+  async function startAnalysis(assetId: string) {
     await action(async () => {
-      const run = await api<Run>(`/assets/${selectedAsset.id}/runs`, {});
+      const run = await api<Run>(
+        `/assets/${encodeURIComponent(assetId)}/runs`,
+        {},
+      );
+      setSelected(assetId);
       setRunId(run.id);
       setView("agents");
     });
@@ -651,7 +658,37 @@ export default function App() {
                       </select>
                     </label>
                     {selectedRun && <Badge value={selectedRun.status} />}
+                    {selectedRun && canPlan && (
+                      <button
+                        className="button primary"
+                        disabled={
+                          busy ||
+                          !status?.provider_configured ||
+                          runs.some(
+                            (run) =>
+                              run.asset_id === selectedRun.asset_id &&
+                              ["queued", "running"].includes(run.status),
+                          )
+                        }
+                        onClick={() => startAnalysis(selectedRun.asset_id)}
+                      >
+                        <RefreshCw size={16} />
+                        {busy
+                          ? "Starting..."
+                          : selectedRun.status === "failed"
+                            ? "Retry analysis"
+                            : "Run again"}
+                      </button>
+                    )}
                   </div>
+                  {selectedRun &&
+                    canPlan &&
+                    !["queued", "running"].includes(selectedRun.status) && (
+                      <p className="muted">
+                        Starts a new analysis for {selectedRun.asset_id} using
+                        current data. This run stays in history.
+                      </p>
+                    )}
                   {selectedRun?.error && (
                     <ErrorBox message={selectedRun.error} />
                   )}
